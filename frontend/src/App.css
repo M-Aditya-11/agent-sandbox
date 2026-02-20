@@ -110,3 +110,51 @@ h2 {
   border: 1px solid #374151;
   font-size: 14px;
 }
+
+/* BUCKET */
+.bucket {
+  margin-top: 40px;
+  background: #111827;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #374151;
+}
+
+.bucket h2 {
+  margin-bottom: 15px;
+}
+
+.bucket-item {
+  background: #1f2937;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: grab;
+}
+
+.bucket-desc {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.bucket-actions button {
+  margin-left: 8px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #374151;
+  color: white;
+}
+
+.bucket-actions button:hover {
+  background: #4b5563;
+}
+
+.empty {
+  color: #6b7280;
+  font-size: 14px;
+}

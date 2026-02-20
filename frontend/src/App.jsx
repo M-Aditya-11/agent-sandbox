@@ -2,6 +2,7 @@ import { useState } from "react";
 import { mockAgents } from "./data/mockAgents";
 import AgentList from "./components/AgentList";
 import ChainVisualizer from "./components/ChainVisualizer";
+import SelectionBucket from "./components/SelectionBucket";
 import "./App.css";
 
 function App() {
@@ -14,6 +15,11 @@ function App() {
       <h2>Agent Registry</h2>
       <AgentList
         agents={mockAgents}
+        selectedAgents={selectedAgents}
+        setSelectedAgents={setSelectedAgents}
+      />
+
+      <SelectionBucket
         selectedAgents={selectedAgents}
         setSelectedAgents={setSelectedAgents}
       />

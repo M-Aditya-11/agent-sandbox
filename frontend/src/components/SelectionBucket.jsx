@@ -26,13 +26,32 @@ const SortableItem = ({ agent, onRemove }) => {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="bucket-item">
-      <div>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="bucket-item"
+      {...attributes}
+    >
+      {/* Drag Handle */}
+      <div
+        {...listeners}
+        className="drag-handle"
+        style={{ cursor: "grab", marginRight: "10px" }}
+      >
+        ☰
+      </div>
+
+      <div style={{ flex: 1 }}>
         <strong>{agent.name}</strong>
         <p className="bucket-desc">{agent.description}</p>
       </div>
 
-      <button onClick={() => onRemove(agent.id)}>✕</button>
+      <button
+        onClick={() => onRemove(agent.id)}
+        type="button"
+      >
+        ✕
+      </button>
     </div>
   );
 };

@@ -8,16 +8,29 @@ import "./App.css";
 
 function App() {
   const [selectedAgents, setSelectedAgents] = useState([]);
+  const [simulateRefusal, setSimulateRefusal] = useState(false);
 
   return (
     <div className="container">
       <h1>🧠 Agent Sandbox UI</h1>
+
+      <div className="governance-toggle">
+        <label>
+          <input
+            type="checkbox"
+            checked={simulateRefusal}
+            onChange={() => setSimulateRefusal(!simulateRefusal)}
+          />
+          Simulate Governance Refusal
+        </label>
+      </div>
 
       <h2>Agent Registry</h2>
       <AgentList
         agents={mockAgents}
         selectedAgents={selectedAgents}
         setSelectedAgents={setSelectedAgents}
+        simulateRefusal={simulateRefusal}
       />
 
       <SelectionBucket

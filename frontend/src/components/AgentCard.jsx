@@ -1,19 +1,21 @@
 import React from "react";
 
-const AgentCard = ({ agent, isSelected, onToggle }) => {
+const AgentCard = ({ agent, isSelected, onToggle, isRefused }) => {
   const isDisabled = agent.status === "Disabled";
 
   const handleClick = () => {
-    if (!isDisabled) {
+    if (!isDisabled && !isRefused) {
       onToggle(agent);
     }
   };
 
   return (
     <div
-      className={`card ${isSelected ? "selected" : ""} ${
-        isDisabled ? "disabled" : ""
-      }`}
+      className={`card 
+        ${isSelected ? "selected" : ""} 
+        ${isDisabled ? "disabled" : ""} 
+        ${isRefused ? "governance-refused" : ""}
+      `}
       onClick={handleClick}
     >
       <h3>{agent.name}</h3>
@@ -35,6 +37,15 @@ const AgentCard = ({ agent, isSelected, onToggle }) => {
           ⚠ {agent.refusal_reason}
         </div>
       )}
+
+      {isRefused && (
+        <div className="governance-refusal">
+          🚫 Governance Refused<br />
+          Not eligible in current context
+        </div>
+      )}
+    
+    
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { createAgentContract, LIFECYCLE_STATES } from "../contracts/AgentContract";
+import { createAgentContract, LIFECYCLE_STATES } from "./AgentContract";
 
 export const AgentRegistry = Object.freeze([
   createAgentContract({

@@ -3,42 +3,44 @@ import AgentCard from "./AgentCard";
 
 const AgentList = ({
   agents,
-  selectedAgents,
-  setSelectedAgents,
+  selectedAgentIds,
+  setSelectedAgentIds,
   simulateRefusal,
+  agentRuntime,
 }) => {
 
-  const toggleAgent = (agent) => {
+  const toggleAgent = (agentId) => {
 
     const isRefused =
-      simulateRefusal && agent.id === 3;
+      simulateRefusal && agentId === 3;
 
     if (isRefused) return;
 
-    const exists = selectedAgents.find((a) => a.id === agent.id);
-
-    if (exists) {
-      setSelectedAgents(
-        selectedAgents.filter((a) => a.id !== agent.id)
-      );
-    } else {
-      setSelectedAgents([...selectedAgents, agent]);
-    }
+    setSelectedAgentIds((prev) =>
+      prev.includes(agentId)
+        ? prev.filter((id) => id !== agentId)
+        : [...prev, agentId]
+    );
   };
 
   return (
     <div className="grid">
-      {agents.map((agent) => (
-        <AgentCard
-          key={agent.id}
-          agent={agent}
-          isSelected={selectedAgents.some((a) => a.id === agent.id)}
-          onToggle={toggleAgent}
-          isRefused={
-            simulateRefusal && agent.id === 3
-          }
-        />
-      ))}
+      {agents.map((agent) => {
+        const isSelected = selectedAgentIds.includes(agent.id);
+
+        return (
+          <AgentCard
+            key={agent.id}
+            agent={agent}
+            runtime={agentRuntime[agent.id]}
+            isSelected={isSelected}
+            onToggle={() => toggleAgent(agent.id)}
+            isRefused={
+              simulateRefusal && agent.id === 3
+            }
+          />
+        );
+      })}
     </div>
   );
 };

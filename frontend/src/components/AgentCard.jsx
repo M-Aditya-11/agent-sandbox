@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
-const AgentCard = ({ agent, isSelected, onToggle, isRefused }) => {
-  const isDisabled = agent.status === "Disabled";
+const AgentCard = ({ agent, isSelected, onToggle, isRefused, runtime }) => {
+  const isDisabled = agent.lifecycle_state === "Disabled";
   const [showWhy, setShowWhy] = useState(false);
 
   const handleClick = () => {
@@ -30,10 +30,10 @@ const AgentCard = ({ agent, isSelected, onToggle, isRefused }) => {
       </p>
 
       <div className="meta">
-        <span className={`status ${agent.status.toLowerCase()}`}>
-          {agent.status}
+        <span className={`lifecycle_state ${agent.lifecycle_state.toLowerCase()}`}>
+          {agent.lifecycle_state}
         </span>
-        <span className="load">Load: {agent.load}%</span>
+        <span className="load">Load: {runtime?.load ?? 0}%</span>
       </div>
 
       {/* Transparency Toggle */}

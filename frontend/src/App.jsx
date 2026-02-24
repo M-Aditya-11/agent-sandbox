@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { mockAgents } from "./data/mockAgents";
+import { AgentRegistry } from "./registry/AgentRegistry";
 import AgentList from "./components/AgentList";
 import ChainVisualizer from "./components/ChainVisualizer";
 import SelectionBucket from "./components/SelectionBucket";
@@ -7,12 +7,38 @@ import ChainPreview from "./components/ChainPreview";
 import "./App.css";
 
 function App() {
-  const [selectedAgents, setSelectedAgents] = useState([]);
+  // UI-only selection state (separate from registry)
+  const [selectedAgentIds, setSelectedAgentIds] = useState([]);
+
+  // UI simulation only (Layer-1 concept, not Layer-2)
   const [simulateRefusal, setSimulateRefusal] = useState(false);
+
+  // Derive selected agents from immutable registry
+  const selectedAgents = AgentRegistry.filter((agent) =>
+    selectedAgentIds.includes(agent.id)
+  );
+
+  // Only Active agents should appear selectable
+  const visibleAgents = AgentRegistry.filter(
+    (agent) => agent.lifecycle_state === "Active"
+  );
+
+  const [agentRuntime, setAgentRuntime] = useState({
+    1: { load: 12 },
+    2: { load: 34 },
+    3: { load: 5 },
+    4: { load: 0 },
+    5: { load: 18 },
+  });
 
   return (
     <div className="container">
-      <h1>🧠 Agent Sandbox</h1>
+      <h1>🧠 Deterministic Agent Registry</h1>
+
+      <div className="system-banner">
+        <strong>Layer-2 Context:</strong> Agents are immutable capability definitions.
+        Selection does not modify registry state.
+      </div>
 
       <div className="governance-toggle">
         <label>
@@ -21,21 +47,22 @@ function App() {
             checked={simulateRefusal}
             onChange={() => setSimulateRefusal(!simulateRefusal)}
           />
-          Simulate Governance Refusal
+          Simulate Governance Refusal (UI Only)
         </label>
       </div>
 
       <h2>Agent Registry</h2>
       <AgentList
-        agents={mockAgents}
-        selectedAgents={selectedAgents}
-        setSelectedAgents={setSelectedAgents}
+        agents={visibleAgents}
+        selectedAgentIds={selectedAgentIds}
+        setSelectedAgentIds={setSelectedAgentIds}
         simulateRefusal={simulateRefusal}
+        agentRuntime={agentRuntime}
       />
 
       <SelectionBucket
         selectedAgents={selectedAgents}
-        setSelectedAgents={setSelectedAgents}
+        setSelectedAgentIds={setSelectedAgentIds}
         isGovernanceRefused={simulateRefusal}
       />
 

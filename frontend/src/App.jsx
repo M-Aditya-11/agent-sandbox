@@ -1,35 +1,35 @@
-import { useState } from "react";
+import React from "react";
 import { AgentRegistry } from "./registry/AgentRegistry";
 import AgentList from "./components/AgentList";
 import ChainVisualizer from "./components/ChainVisualizer";
 import SelectionBucket from "./components/SelectionBucket";
 import ChainPreview from "./components/ChainPreview";
+import { useSession } from "./session/useSession";
+import { LIFECYCLE_STATES } from "./registry/AgentContract";
 import "./App.css";
 
 function App() {
-  // UI-only selection state (separate from registry)
-  const [selectedAgentIds, setSelectedAgentIds] = useState([]);
+  // Session Layer (Layer-3 Runtime State)
+  const {
+    state,
+    selectAgent,
+    deselectAgent,
+    setRuntimeLoad,
+  } = useSession();
 
-  // UI simulation only (Layer-1 concept, not Layer-2)
-  const [simulateRefusal, setSimulateRefusal] = useState(false);
+  // UI-only toggle (not part of registry or session)
+  const [simulateRefusal, setSimulateRefusal] = React.useState(false);
 
   // Derive selected agents from immutable registry
   const selectedAgents = AgentRegistry.filter((agent) =>
-    selectedAgentIds.includes(agent.id)
+    state.selectedAgentIds.includes(agent.id)
   );
 
-  // Only Active agents should appear selectable
+  // Only ACTIVE agents are selectable
   const visibleAgents = AgentRegistry.filter(
-    (agent) => agent.lifecycle_state === "Active"
+    (agent) =>
+      agent.lifecycle_state === LIFECYCLE_STATES.ACTIVE
   );
-
-  const [agentRuntime, setAgentRuntime] = useState({
-    1: { load: 12 },
-    2: { load: 34 },
-    3: { load: 5 },
-    4: { load: 0 },
-    5: { load: 18 },
-  });
 
   return (
     <div className="container">
@@ -45,7 +45,9 @@ function App() {
           <input
             type="checkbox"
             checked={simulateRefusal}
-            onChange={() => setSimulateRefusal(!simulateRefusal)}
+            onChange={() =>
+              setSimulateRefusal(!simulateRefusal)
+            }
           />
           Simulate Governance Refusal (UI Only)
         </label>
@@ -54,15 +56,16 @@ function App() {
       <h2>Agent Registry</h2>
       <AgentList
         agents={visibleAgents}
-        selectedAgentIds={selectedAgentIds}
-        setSelectedAgentIds={setSelectedAgentIds}
+        selectedAgentIds={state.selectedAgentIds}
+        selectAgent={selectAgent}
+        deselectAgent={deselectAgent}
         simulateRefusal={simulateRefusal}
-        agentRuntime={agentRuntime}
+        runtimeLoadById={state.runtimeLoadById}
       />
 
       <SelectionBucket
         selectedAgents={selectedAgents}
-        setSelectedAgentIds={setSelectedAgentIds}
+        deselectAgent={deselectAgent}
         isGovernanceRefused={simulateRefusal}
       />
 

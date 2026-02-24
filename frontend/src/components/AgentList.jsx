@@ -4,35 +4,39 @@ import AgentCard from "./AgentCard";
 const AgentList = ({
   agents,
   selectedAgentIds,
-  setSelectedAgentIds,
+  selectAgent,
+  deselectAgent,
   simulateRefusal,
-  agentRuntime,
+  runtimeLoadById,
 }) => {
-
   const toggleAgent = (agentId) => {
-
     const isRefused =
       simulateRefusal && agentId === 3;
 
     if (isRefused) return;
 
-    setSelectedAgentIds((prev) =>
-      prev.includes(agentId)
-        ? prev.filter((id) => id !== agentId)
-        : [...prev, agentId]
-    );
+    if (selectedAgentIds.includes(agentId)) {
+      deselectAgent(agentId);
+    } else {
+      selectAgent(agentId);
+    }
   };
 
   return (
     <div className="grid">
       {agents.map((agent) => {
-        const isSelected = selectedAgentIds.includes(agent.id);
+        const isSelected =
+          selectedAgentIds.includes(agent.id);
+
+        // SAFE runtime access
+        const runtime =
+          runtimeLoadById?.[agent.id] ?? { load: 0 };
 
         return (
           <AgentCard
             key={agent.id}
             agent={agent}
-            runtime={agentRuntime[agent.id]}
+            runtime={runtime}
             isSelected={isSelected}
             onToggle={() => toggleAgent(agent.id)}
             isRefused={

@@ -1,25 +1,36 @@
 import React, { useState } from "react";
+import { LIFECYCLE_STATES } from "../registry/AgentContract";
 
-const AgentCard = ({ agent, isSelected, onToggle, isRefused, runtime }) => {
-  const isDisabled = agent.lifecycle_state === "Disabled";
+const AgentCard = ({
+  agent,
+  isSelected,
+  onToggle,
+  isRefused,
+  runtime,
+}) => {
+  const isDisabled =
+    agent.lifecycle_state === LIFECYCLE_STATES.SUSPENDED;
+
   const [showWhy, setShowWhy] = useState(false);
 
   const handleClick = () => {
     if (!isDisabled && !isRefused) {
-      onToggle(agent);
+      onToggle(); // no agent passed
     }
   };
 
   const toggleWhy = (e) => {
-    e.stopPropagation(); // Prevent selecting agent when clicking transparency
+    e.stopPropagation();
     setShowWhy(!showWhy);
   };
 
   return (
     <div
-      className={`card ${isSelected ? "selected" : ""} 
-      ${isDisabled ? "disabled" : ""} 
-      ${isRefused ? "governance-refused" : ""}`}
+      className={`card 
+        ${isSelected ? "selected" : ""} 
+        ${isDisabled ? "disabled" : ""} 
+        ${isRefused ? "governance-refused" : ""}
+      `}
       onClick={handleClick}
     >
       <h3>{agent.name}</h3>
@@ -30,15 +41,20 @@ const AgentCard = ({ agent, isSelected, onToggle, isRefused, runtime }) => {
       </p>
 
       <div className="meta">
-        <span className={`lifecycle_state ${agent.lifecycle_state.toLowerCase()}`}>
+        <span
+          className={`lifecycle_state ${agent.lifecycle_state.toLowerCase()}`}
+        >
           {agent.lifecycle_state}
         </span>
-        <span className="load">Load: {runtime?.load ?? 0}%</span>
+        <span className="load">
+          Load: {runtime?.load ?? 0}%
+        </span>
       </div>
 
-      {/* Transparency Toggle */}
       <div className="why-toggle" onClick={toggleWhy}>
-        {showWhy ? "▲ Hide explanation" : "▼ Why this agent exists"}
+        {showWhy
+          ? "▲ Hide explanation"
+          : "▼ Why this agent exists"}
       </div>
 
       {showWhy && (
@@ -49,7 +65,7 @@ const AgentCard = ({ agent, isSelected, onToggle, isRefused, runtime }) => {
 
       {isDisabled && (
         <div className="refusal">
-          ⚠ {agent.refusal_reason}
+          ⚠ Agent Suspended
         </div>
       )}
 

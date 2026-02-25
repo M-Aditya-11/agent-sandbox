@@ -9,13 +9,26 @@
  */
 
 export const initialSessionState = {
-  selectedAgentIds: [],        // selection layer
-  runtimeLoadById: {},         // temporary UI load state
-  governanceOverrides: {},     // runtime governance toggles
+  // Selection Layer
+  selectedAgentIds: [],
+
+  // Runtime Layer (simple id -> load mapping)
+  runtimeLoadById: {
+    1: 12,
+    2: 34,
+    3: 5,
+    4: 0,
+    5: 18,
+    6: 22,
+  },
+
+  // Governance Layer
+  governanceOverrides: {},
 };
 
 export function sessionReducer(state, action) {
   switch (action.type) {
+
     case "SELECT_AGENT": {
       const id = action.payload;
 

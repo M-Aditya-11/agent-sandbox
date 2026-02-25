@@ -6,7 +6,7 @@ const AgentCard = ({
   isSelected,
   onToggle,
   isRefused,
-  runtime,
+  load,   // ✅ receive number directly
 }) => {
   const isDisabled =
     agent.lifecycle_state === LIFECYCLE_STATES.SUSPENDED;
@@ -15,7 +15,7 @@ const AgentCard = ({
 
   const handleClick = () => {
     if (!isDisabled && !isRefused) {
-      onToggle(); // no agent passed
+      onToggle();
     }
   };
 
@@ -47,7 +47,7 @@ const AgentCard = ({
           {agent.lifecycle_state}
         </span>
         <span className="load">
-          Load: {runtime?.load ?? 0}%
+          Load: {load ?? 0}%
         </span>
       </div>
 

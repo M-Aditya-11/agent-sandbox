@@ -3,6 +3,7 @@
  *
  * Public interface to Session Layer.
  * Components interact with session only through this hook.
+ * Registry is NOT accessible here.
  */
 
 import { useReducer } from "react";
@@ -17,7 +18,10 @@ export function useSession() {
     initialSessionState
   );
 
-  // Action wrappers (clean interface)
+  /* --------------------------
+     Action Wrappers
+  -------------------------- */
+
   const selectAgent = (id) =>
     dispatch({ type: "SELECT_AGENT", payload: id });
 
@@ -39,8 +43,21 @@ export function useSession() {
   const clearSession = () =>
     dispatch({ type: "CLEAR_SESSION" });
 
+  /* --------------------------
+     Public Session Surface
+  -------------------------- */
+
   return {
-    state,
+    // Selection Layer
+    selectedAgentIds: state.selectedAgentIds,
+
+    // Runtime Layer
+    runtimeLoadById: state.runtimeLoadById, // ✅ correct & explicit
+
+    // Governance Layer
+    governanceOverrides: state.governanceOverrides,
+
+    // Actions
     selectAgent,
     deselectAgent,
     setRuntimeLoad,

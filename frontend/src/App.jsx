@@ -9,26 +9,26 @@ import { LIFECYCLE_STATES } from "./registry/AgentContract";
 import "./App.css";
 
 function App() {
-  // Session Layer (Layer-3 Runtime State)
+  // Layer-3: Session Runtime Surface
   const {
-    state,
+    selectedAgentIds = [],
+    runtimeLoadById = {}, // ✅ must match useSession return
     selectAgent,
     deselectAgent,
     setRuntimeLoad,
   } = useSession();
 
-  // UI-only toggle (not part of registry or session)
+  // UI-only toggle
   const [simulateRefusal, setSimulateRefusal] = React.useState(false);
 
-  // Derive selected agents from immutable registry
+  // Derive selected agents
   const selectedAgents = AgentRegistry.filter((agent) =>
-    state.selectedAgentIds.includes(agent.id)
+    selectedAgentIds.includes(agent.id)
   );
 
-  // Only ACTIVE agents are selectable
+  // Only ACTIVE agents are visible
   const visibleAgents = AgentRegistry.filter(
-    (agent) =>
-      agent.lifecycle_state === LIFECYCLE_STATES.ACTIVE
+    (agent) => agent.lifecycle_state === LIFECYCLE_STATES.ACTIVE
   );
 
   return (
@@ -45,9 +45,7 @@ function App() {
           <input
             type="checkbox"
             checked={simulateRefusal}
-            onChange={() =>
-              setSimulateRefusal(!simulateRefusal)
-            }
+            onChange={() => setSimulateRefusal(!simulateRefusal)}
           />
           Simulate Governance Refusal (UI Only)
         </label>
@@ -56,11 +54,11 @@ function App() {
       <h2>Agent Registry</h2>
       <AgentList
         agents={visibleAgents}
-        selectedAgentIds={state.selectedAgentIds}
+        selectedAgentIds={selectedAgentIds}
         selectAgent={selectAgent}
         deselectAgent={deselectAgent}
         simulateRefusal={simulateRefusal}
-        runtimeLoadById={state.runtimeLoadById}
+        runtimeLoadById={runtimeLoadById}
       />
 
       <SelectionBucket

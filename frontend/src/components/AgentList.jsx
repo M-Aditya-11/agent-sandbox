@@ -28,15 +28,15 @@ const AgentList = ({
         const isSelected =
           selectedAgentIds.includes(agent.id);
 
-        // SAFE runtime access
-        const runtime =
-          runtimeLoadById?.[agent.id] ?? { load: 0 };
+        // Correct runtime value (number)
+        const load =
+          runtimeLoadById?.[agent.id] ?? 0;
 
         return (
           <AgentCard
             key={agent.id}
             agent={agent}
-            runtime={runtime}
+            load={load}   // ✅ pass number
             isSelected={isSelected}
             onToggle={() => toggleAgent(agent.id)}
             isRefused={

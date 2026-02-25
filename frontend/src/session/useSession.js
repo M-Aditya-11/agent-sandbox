@@ -28,6 +28,12 @@ export function useSession() {
   const deselectAgent = (id) =>
     dispatch({ type: "DESELECT_AGENT", payload: id });
 
+  const reorderAgents = (newOrderedIds) =>
+    dispatch({
+      type: "REORDER_AGENTS",
+      payload: newOrderedIds,
+    });
+
   const setRuntimeLoad = (id, load) =>
     dispatch({
       type: "SET_RUNTIME_LOAD",
@@ -52,7 +58,7 @@ export function useSession() {
     selectedAgentIds: state.selectedAgentIds,
 
     // Runtime Layer
-    runtimeLoadById: state.runtimeLoadById, // ✅ correct & explicit
+    runtimeLoadById: state.runtimeLoadById,
 
     // Governance Layer
     governanceOverrides: state.governanceOverrides,
@@ -60,6 +66,7 @@ export function useSession() {
     // Actions
     selectAgent,
     deselectAgent,
+    reorderAgents,
     setRuntimeLoad,
     toggleGovernanceOverride,
     clearSession,

@@ -1,7 +1,7 @@
 /**
  * session.reducer.js
  *
- * Layer-3 Runtime Session State
+ * Runtime Session State
  * --------------------------------
  * Holds mutable runtime state only.
  * Never stores registry agent objects.
@@ -29,6 +29,10 @@ export const initialSessionState = {
 export function sessionReducer(state, action) {
   switch (action.type) {
 
+    /* --------------------------
+       Selection Layer
+    -------------------------- */
+
     case "SELECT_AGENT": {
       const id = action.payload;
 
@@ -53,6 +57,32 @@ export function sessionReducer(state, action) {
       };
     }
 
+    case "REORDER_AGENTS": {
+      const newOrder = action.payload;
+
+      // 🔒 Deterministic safety:
+      // Only allow reordering of currently selected IDs
+      const isValid =
+        Array.isArray(newOrder) &&
+        newOrder.length === state.selectedAgentIds.length &&
+        newOrder.every((id) =>
+          state.selectedAgentIds.includes(id)
+        );
+
+      if (!isValid) {
+        return state;
+      }
+
+      return {
+        ...state,
+        selectedAgentIds: newOrder,
+      };
+    }
+
+    /* --------------------------
+       Runtime Layer
+    -------------------------- */
+
     case "SET_RUNTIME_LOAD": {
       const { id, load } = action.payload;
 
@@ -64,6 +94,10 @@ export function sessionReducer(state, action) {
         },
       };
     }
+
+    /* --------------------------
+       Governance Layer
+    -------------------------- */
 
     case "TOGGLE_GOVERNANCE_OVERRIDE": {
       const id = action.payload;

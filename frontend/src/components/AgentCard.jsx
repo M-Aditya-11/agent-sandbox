@@ -8,11 +8,11 @@ const AgentCard = ({
   isRefused,
   load,
 }) => {
-  const lifecycle = agent.lifecycle_state;
+  const lifecycle = agent.lifecycle_state || LIFECYCLE_STATES.ACTIVE;
 
-  // -----------------------------
+  // --------------------------------
   // Deterministic Lifecycle Rules
-  // -----------------------------
+  // --------------------------------
 
   const isSuspended =
     lifecycle === LIFECYCLE_STATES.SUSPENDED;
@@ -20,32 +20,33 @@ const AgentCard = ({
   const isDeprecated =
     lifecycle === LIFECYCLE_STATES.DEPRECATED;
 
-  const isActive =
-    lifecycle === LIFECYCLE_STATES.ACTIVE;
-
-  // Suspended = visible but not selectable
+  // Suspended → visible but NOT selectable
   const isDisabled = isSuspended;
 
   const [showWhy, setShowWhy] = useState(false);
 
   const handleClick = () => {
+    // Deterministic enforcement
     if (isDisabled || isRefused) return;
     onToggle();
   };
 
   const toggleWhy = (e) => {
     e.stopPropagation();
-    setShowWhy(!showWhy);
+    setShowWhy((prev) => !prev);
   };
 
   return (
     <div
-      className={`card
-        ${isSelected ? "selected" : ""}
-        ${isDisabled ? "disabled" : ""}
-        ${isDeprecated ? "deprecated" : ""}
-        ${isRefused ? "governance-refused" : ""}
-      `}
+      className={[
+        "card",
+        isSelected && "selected",
+        isDisabled && "disabled",
+        isDeprecated && "deprecated",
+        isRefused && "governance-refused",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       onClick={handleClick}
     >
       <h3>
@@ -95,7 +96,8 @@ const AgentCard = ({
 
       {isRefused && (
         <div className="governance-refusal">
-          🚫 Governance Refused<br />
+          🚫 Governance Refused
+          <br />
           Not eligible in current context
         </div>
       )}

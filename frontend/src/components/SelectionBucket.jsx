@@ -20,7 +20,7 @@ const SortableItem = ({ agent, onRemove, isGovernanceRefused }) => {
     transition,
   } = useSortable({
     id: agent.id,
-    disabled: isGovernanceRefused, // 🔒 Disable drag when refused
+    disabled: isGovernanceRefused,
   });
 
   const style = {
@@ -70,12 +70,13 @@ const SortableItem = ({ agent, onRemove, isGovernanceRefused }) => {
 
 const SelectionBucket = ({
   selectedAgents,
-  setSelectedAgents,
-  isGovernanceRefused, // 🔥 New prop
+  deselectAgent,
+  reorderAgents,          // ✅ new prop
+  isGovernanceRefused,
 }) => {
 
   const handleDragEnd = (event) => {
-    if (isGovernanceRefused) return; // 🔒 Block reorder
+    if (isGovernanceRefused) return;
 
     const { active, over } = event;
 
@@ -88,17 +89,17 @@ const SelectionBucket = ({
       (item) => item.id === over.id
     );
 
-    setSelectedAgents((items) =>
-      arrayMove(items, oldIndex, newIndex)
-    );
+    const reordered = arrayMove(selectedAgents, oldIndex, newIndex);
+
+    // 🔒 Deterministic — delegate to session layer
+    reorderAgents(reordered.map((a) => a.id));
   };
 
   const removeAgent = (id) => {
-    if (isGovernanceRefused) return; // 🔒 Block removal
+    if (isGovernanceRefused) return;
 
-    setSelectedAgents((items) =>
-      items.filter((a) => a.id !== id)
-    );
+    // 🔒 Deterministic — delegate to session layer
+    deselectAgent(id);
   };
 
   return (

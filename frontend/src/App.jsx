@@ -5,17 +5,15 @@ import ChainVisualizer from "./components/ChainVisualizer";
 import SelectionBucket from "./components/SelectionBucket";
 import ChainPreview from "./components/ChainPreview";
 import { useSession } from "./session/useSession";
-import { LIFECYCLE_STATES } from "./registry/AgentContract";
 import "./App.css";
 
 function App() {
   // Layer-3: Session Runtime Surface
   const {
     selectedAgentIds = [],
-    runtimeLoadById = {}, // ✅ must match useSession return
+    runtimeLoadById = {},
     selectAgent,
     deselectAgent,
-    setRuntimeLoad,
   } = useSession();
 
   // UI-only toggle
@@ -26,7 +24,7 @@ function App() {
     selectedAgentIds.includes(agent.id)
   );
 
-  // Only ACTIVE agents are visible
+  // Show all agents (lifecycle handled inside AgentCard)
   const visibleAgents = AgentRegistry;
 
   return (
@@ -62,7 +60,6 @@ function App() {
       <SelectionBucket
         selectedAgents={selectedAgents}
         deselectAgent={deselectAgent}
-        isGovernanceRefused={simulateRefusal}
       />
 
       <h2>Chain Visualization</h2>

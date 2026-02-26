@@ -11,6 +11,9 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+/* =========================
+   Sortable Item
+========================= */
 const SortableItem = ({ agent, onRemove, isGovernanceRefused }) => {
   const {
     attributes,
@@ -20,13 +23,15 @@ const SortableItem = ({ agent, onRemove, isGovernanceRefused }) => {
     transition,
   } = useSortable({
     id: agent.id,
-    disabled: isGovernanceRefused,
+    disabled: isGovernanceRefused, // 🔒 Hard disable drag
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
+
+  
 
   return (
     <div
@@ -54,9 +59,13 @@ const SortableItem = ({ agent, onRemove, isGovernanceRefused }) => {
       </div>
 
       <button
-        onClick={() => !isGovernanceRefused && onRemove(agent.id)}
         type="button"
         disabled={isGovernanceRefused}
+        onClick={() => {
+          if (!isGovernanceRefused) {
+            onRemove(agent.id);
+          }
+        }}
         style={{
           opacity: isGovernanceRefused ? 0.5 : 1,
           cursor: isGovernanceRefused ? "not-allowed" : "pointer",
@@ -68,18 +77,19 @@ const SortableItem = ({ agent, onRemove, isGovernanceRefused }) => {
   );
 };
 
+/* =========================
+   Selection Bucket
+========================= */
 const SelectionBucket = ({
   selectedAgents,
-  deselectAgent,
-  reorderAgents,          // ✅ new prop
+  setSelectedAgents,
   isGovernanceRefused,
 }) => {
 
   const handleDragEnd = (event) => {
-    if (isGovernanceRefused) return;
+    if (isGovernanceRefused) return; // 🔒 Absolute reorder block
 
     const { active, over } = event;
-
     if (!over || active.id === over.id) return;
 
     const oldIndex = selectedAgents.findIndex(
@@ -89,25 +99,42 @@ const SelectionBucket = ({
       (item) => item.id === over.id
     );
 
-    const reordered = arrayMove(selectedAgents, oldIndex, newIndex);
-
-    // 🔒 Deterministic — delegate to session layer
-    reorderAgents(reordered.map((a) => a.id));
+    setSelectedAgents((items) =>
+      arrayMove(items, oldIndex, newIndex)
+    );
   };
 
   const removeAgent = (id) => {
-    if (isGovernanceRefused) return;
+    if (isGovernanceRefused) return; // 🔒 Absolute removal block
 
-    // 🔒 Deterministic — delegate to session layer
-    deselectAgent(id);
+    setSelectedAgents((items) =>
+      items.filter((a) => a.id !== id)
+    );
   };
 
   return (
-    <div className={`bucket ${isGovernanceRefused ? "bucket-locked" : ""}`}>
+    <div
+      className={`bucket ${isGovernanceRefused ? "bucket-locked" : ""}`}
+      style={{
+        pointerEvents: isGovernanceRefused ? "none" : "auto", // 🔥 UI-level freeze
+      }}
+    >
       <h2>🪣 Agent Selection Bucket</h2>
+      
 
+      {/* Governance Lock Banner */}
       {isGovernanceRefused && (
-        <div className="bucket-warning">
+        <div
+          className="bucket-warning"
+          style={{
+            marginBottom: "12px",
+            padding: "8px",
+            color: "#f4f1f2",
+            borderRadius: "6px",
+            fontWeight: 500,
+            pointerEvents: "auto", // Allow banner visibility
+          }}
+        >
           🚫 Governance active — bucket interaction locked
         </div>
       )}

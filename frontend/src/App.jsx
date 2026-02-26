@@ -16,15 +16,14 @@ function App() {
     deselectAgent,
   } = useSession();
 
-  // UI-only toggle
+  // 🔥 Governance toggle (UI-level simulation)
   const [simulateRefusal, setSimulateRefusal] = React.useState(false);
 
-  // Derive selected agents
+  // Derive selected agents from immutable registry
   const selectedAgents = AgentRegistry.filter((agent) =>
     selectedAgentIds.includes(agent.id)
   );
 
-  // Show all agents (lifecycle handled inside AgentCard)
   const visibleAgents = AgentRegistry;
 
   return (
@@ -36,12 +35,13 @@ function App() {
         Selection does not modify registry state.
       </div>
 
+      {/* Governance Toggle */}
       <div className="governance-toggle">
         <label>
           <input
             type="checkbox"
             checked={simulateRefusal}
-            onChange={() => setSimulateRefusal(!simulateRefusal)}
+            onChange={() => setSimulateRefusal((prev) => !prev)}
           />
           Simulate Governance Refusal (UI Only)
         </label>
@@ -57,9 +57,11 @@ function App() {
         runtimeLoadById={runtimeLoadById}
       />
 
+      {/* ✅ FIX: Pass governance state to bucket */}
       <SelectionBucket
         selectedAgents={selectedAgents}
         deselectAgent={deselectAgent}
+        isGovernanceRefused={simulateRefusal}
       />
 
       <h2>Chain Visualization</h2>

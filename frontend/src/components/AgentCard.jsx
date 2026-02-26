@@ -8,10 +8,11 @@ const AgentCard = ({
   isRefused,
   load,
 }) => {
-  const lifecycle = agent.lifecycle_state || LIFECYCLE_STATES.ACTIVE;
+  const lifecycle =
+    agent.lifecycle_state || LIFECYCLE_STATES.ACTIVE;
 
   // --------------------------------
-  // Deterministic Lifecycle Rules
+  // Presentation-Only Lifecycle Flags
   // --------------------------------
 
   const isSuspended =
@@ -20,14 +21,13 @@ const AgentCard = ({
   const isDeprecated =
     lifecycle === LIFECYCLE_STATES.DEPRECATED;
 
-  // Suspended → visible but NOT selectable
+  // Visual state only (no enforcement here)
   const isDisabled = isSuspended;
 
   const [showWhy, setShowWhy] = useState(false);
 
   const handleClick = () => {
-    // Deterministic enforcement
-    if (isDisabled || isRefused) return;
+    // Card delegates all control decisions upward
     onToggle();
   };
 

@@ -13,21 +13,21 @@ const AgentList = ({
 
   // Deterministic lifecycle enforcement
   const toggleAgent = (agent) => {
-    const isSuspended =
-      agent.lifecycle_state === LIFECYCLE_STATES.SUSPENDED;
+  const isSuspended =
+    agent.lifecycle_state === LIFECYCLE_STATES.SUSPENDED;
 
-    const isRefused =
-      simulateRefusal && agent.id === 3;
+  const isRefused =
+    simulateRefusal && agent.id === 3;
 
-    // Suspended agents cannot be selected
-    if (isSuspended || isRefused) return;
+  // 🔒 ALL interaction enforcement lives here
+  if (isSuspended || isRefused) return;
 
-    if (selectedAgentIds.includes(agent.id)) {
-      deselectAgent(agent.id);
-    } else {
-      selectAgent(agent.id);
-    }
-  };
+  if (selectedAgentIds.includes(agent.id)) {
+    deselectAgent(agent.id);
+  } else {
+    selectAgent(agent.id);
+  }
+};
 
   return (
     <div className="grid">

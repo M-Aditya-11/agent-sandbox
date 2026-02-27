@@ -4,7 +4,7 @@
 
 Layer-2 represents the **Deterministic Agent Registry Layer**.
 
-At this layer, agents are **immutable capability definitions** - not runtime instances, not session artifacts, and not dynamically mutated objects.
+At this layer, agents are **immutable capability definitions** - not runtime instances, not session artifacts and not dynamically mutated objects.
 
 An agent is considered **valid at Layer-2** only if it satisfies strict structural and governance constraints.
 

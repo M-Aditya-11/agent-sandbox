@@ -1,195 +1,147 @@
-﻿# Agent Sandbox
 
-A frontend-only sandbox prototype that visualizes what a governed “Agent Bucket” system could look like.
+# 🧠 Layer-2 Agent Definition Contract
 
-This project focuses on clarity, visibility, and explicit capability modeling — not intelligence or backend orchestration.
+## Purpose
 
----
+Layer-2 defines **capability**, not runtime behavior.
 
-# What This Simulates
+The Agent Contract formalizes what an agent *is* inside the system.
+It ensures deterministic recognition, structural integrity and governance clarity.
 
-This application simulates the **visual and mental model** of a governed multi-agent system.
+Layer-2 does **not**:
 
-Specifically, it simulates:
+* Execute workflows
+* Perform orchestration
+* Apply policy
+* Simulate runtime state
+* Mutate authority
 
-### 1️⃣ Agent Registry
-
-* A list of mock agents (hardcoded JSON)
-* Clear capability descriptions
-* Declared authority scope
-* Status indicators (Available / Busy / Disabled)
-* Load indicators
-* UI-based status constraints
+It only defines officially recognized capability.
 
 ---
 
-### 2️⃣ Agent Selection Bucket
+## 📄 AgentContract.js
 
-* Adding agents to a visual bucket
-* Removing agents
-* Reordering agents
+All agents in the system must be created using the `createAgentContract()` factory.
 
-This represents sequencing intent — not execution.
+This guarantees:
 
----
-
-### 3️⃣ Chain Preview
-
-A simple UI representation of agent order:
-
-```
-Text Summarizer → Risk Evaluator → Workflow Router
-```
-
-This is sequencing visualization only.
+* Structural validation
+* Lifecycle enforcement
+* Authority immutability
+* Deterministic registration
 
 ---
 
-### 4️⃣ Governance Refusal Simulation
+## 📌 Required Fields
 
-A toggle that simulates:
+Every agent must include:
 
-> “Governance Refused This Agent”
+| Field                 | Type          | Mutable | Description                            |
+| --------------------- | ------------- | ------- | -------------------------------------- |
+| `id`                  | number | ❌ No    | Unique identifier                      |
+| `name`                | string        | ❌ No    | Official agent name                    |
+| `description`         | string        | ❌ No    | Capability summary                     |
+| `authority_scope`     | string        | ❌ No    | Explicit boundary of authority         |
+| `capability_type`     | string        | ❌ No    | Classification category                |
+| `lifecycle_state`     | enum          | ❌ No    | `Active`, `Deprecated` or `Suspended` |
+| `load_visibility`     | boolean       | ❌ No    | Whether runtime load may be displayed  |
+| `governance_eligible` | boolean       | ❌ No    | Eligible for governance review         |
+| `why_exists`          | string        | ❌ No    | Required justification of existence    |
 
-When activated:
-
-* The agent card visibly shows refusal state
-* Displays:
-  `Not eligible in current context`
-* Blocks selection
-
-This models how governance might appear to a user — without implementing governance logic.
-
----
-
-### 5️⃣ Transparency Layer
-
-Each agent contains a collapsible:
-
-> “Why this agent exists” section
-
-This makes:
-
-* Capability explicit
-* Authority understandable
-* Boundaries visible
-* System behavior less “magical”
+All fields are frozen at creation.
 
 ---
 
-# What This Does NOT Simulate
+## 🔒 Immutability Rules
 
-This project does **not** simulate:
+All agents are frozen using `Object.freeze()`.
 
-* AI reasoning
-* Model execution
-* Real orchestration
-* Backend systems
+This guarantees:
+
+* Authority cannot escalate at runtime
+* Capability cannot be redefined by UI
+* Lifecycle cannot silently change
+* Governance eligibility cannot be toggled dynamically
+
+If mutation were allowed, the system would lose:
+
+* Determinism
+* Auditability
+* Structural trust
+* Layer separation integrity
+
+Layer-2 must be stable and declarative.
+
+---
+
+## 🔁 Lifecycle States
+
+Agents must explicitly declare one of:
+
+* `Active`
+* `Deprecated`
+* `Suspended`
+
+Lifecycle is declarative metadata.
+It does not execute behavior.
+
+---
+
+## 🏛 Registry vs Selection
+
+Layer-2 Registry:
+
+* Canonical list of recognized agents
+* Immutable
+* Deterministic
+
+UI Selection State:
+
+* Temporary
+* Mutable
+* Does not modify the registry
+
+Registry defines existence.
+Selection defines usage.
+
+They must never be mixed.
+
+---
+
+## 🚫 What Is Not Allowed in Layer-2
+
+The following are prohibited inside the Agent Contract:
+
+* Runtime load values
+* Busy/Available state
+* Refusal reasons
+* Dynamic authority reassignment
+* Self-modifying capability
+* Orchestration logic
 * Policy engines
-* Governance enforcement
-* Authentication
-* API communication
-* Context evaluation
-* Sarathi logic
 
-There is:
+Those belong to other layers.
 
-* No execution engine
-* No decision-making engine
-* No workflow runtime
-* No real chaining
-
-All behavior is UI state simulation only.
-
-If the system appears intelligent, it is only structured UI logic.
+Layer-2 defines capability.
+It does not invent behavior.
 
 ---
 
-# What Layer-2 Actually Is
+## 🧱 Architectural Principle
 
-In this context, **Layer-2 is not AI.**
+Layer-1 → Runtime Behavior.
 
-Layer-2 represents:
+Layer-2 → Capability Definition (this layer).
 
-> The governance + visibility layer that sits between capability and execution.
+Layer-3 → Governance Enforcement
 
-It is the layer that:
+Layer-2 must remain:
 
-* Declares what an agent is allowed to do
-* Exposes authority scope
-* Surfaces status constraints
-* Communicates refusal clearly
-* Makes sequencing visible
-* Prevents invisible orchestration
+* Declarative
+* Immutable
+* Deterministic
+* Explicit
+* Structurally disciplined
 
-Layer-2 is about:
-
-* Interface clarity
-* System transparency
-* User trust
-* Explicit boundaries
-
-It is not:
-
-* Model intelligence
-* Backend infrastructure
-* Distributed execution
-* Policy computation
-
-It is the **interpretability and governance experience layer**.
-
----
-
-# Lessons Learned
-
-### 1️⃣ Visibility Reduces Magic
-
-When capability is declared explicitly (authority, purpose and explanation) the system feels controlled rather than mysterious.
-
----
-
-### 2️⃣ Refusal Must Be Designed
-
-A refusal state is not an error.
-It is a governance expression.
-Clear refusal messaging builds trust.
-
----
-
-### 3️⃣ Status Is Behavioral UX
-
-Even without backend logic, UI states (Available / Busy / Disabled) meaningfully shape user interaction.
-
----
-
-
-### 4️⃣ Transparency Is a Design Choice
-
-Adding “Why this agent exists” changes how users perceive the system.
-It shifts from:
-
-> “The AI decided”
-
-to
-
-> “This component exists for this declared purpose”
-
----
-
-### 5️⃣ Governance Is an Experience Layer
-
-Even when simulated, governance alters behavior, expectation, and trust.
-That experience can be prototyped without building infrastructure.
-
----
-
-# Final Thought
-
-This project demonstrates how to:
-
-* Make invisible capability visible
-* Represent governance without implementing it
-* Model sequencing without execution
-* Create clarity without backend complexity
-
-It is a sandbox for understanding how governed agent systems might feel — not how they function internally.
+If a change requires runtime mutation, it does not belong here.

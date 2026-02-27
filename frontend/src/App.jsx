@@ -5,6 +5,7 @@ import ChainVisualizer from "./components/ChainVisualizer";
 import SelectionBucket from "./components/SelectionBucket";
 import ChainPreview from "./components/ChainPreview";
 import { useSession } from "./session/useSession";
+import SystemContextBanner from "./components/SystemContextBanner";
 import "./App.css";
 
 function App() {
@@ -29,6 +30,12 @@ function App() {
   return (
     <div className="container">
       <h1>🧠 Deterministic Agent Registry</h1>
+
+      <SystemContextBanner
+        simulateRefusal={simulateRefusal}
+        registryVersion="v1.0"
+        mutationEnabled={false}
+      />
 
       <div className="system-banner">
         <strong>Layer-2 Context:</strong> Agents are immutable capability definitions.

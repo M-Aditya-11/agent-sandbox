@@ -1,147 +1,135 @@
+# Requirement 2 – Deep Immutability Enforcement
 
-# 🧠 Layer-2 Agent Definition Contract
+## Objective
 
-## Purpose
+Upgrade the registry contract from shallow immutability (`Object.freeze`) to **recursive structural immutability**, ensuring:
 
-Layer-2 defines **capability**, not runtime behavior.
+* Nested fields cannot mutate
+* Contract definitions are permanently sealed
+* The registry surface cannot expand or shrink at runtime
+* Enforcement is demonstrably verified
 
-The Agent Contract formalizes what an agent *is* inside the system.
-It ensures deterministic recognition, structural integrity and governance clarity.
-
-Layer-2 does **not**:
-
-* Execute workflows
-* Perform orchestration
-* Apply policy
-* Simulate runtime state
-* Mutate authority
-
-It only defines officially recognized capability.
+This establishes Layer-2 as a formally isolated capability surface.
 
 ---
 
-## 📄 AgentContract.js
+## 1. Recursive `deepFreeze` Utility
 
-All agents in the system must be created using the `createAgentContract()` factory.
+A custom `deepFreeze` utility was implemented to enforce immutability across nested structures.
+
+```javascript
+function deepFreeze(obj) {
+  if (obj && typeof obj === "object" && !Object.isFrozen(obj)) {
+    Object.freeze(obj);
+
+    Object.getOwnPropertyNames(obj).forEach((prop) => {
+      const value = obj[prop];
+      if (value && typeof value === "object") {
+        deepFreeze(value);
+      }
+    });
+  }
+
+  return obj;
+}
+```
+
+### Why This Matters
+
+`Object.freeze()` alone protects only the top level.
+
+`deepFreeze()` ensures:
+
+* Nested objects
+* Future structured fields
+* Extended capability metadata
+
+are also protected against runtime mutation.
+
+This future-proofs the contract surface.
+
+---
+
+## 2. Immutable Agent Contract Enforcement
+
+The contract factory now returns a recursively frozen object:
+
+```javascript
+return deepFreeze(agent);
+```
 
 This guarantees:
 
-* Structural validation
-* Lifecycle enforcement
-* Authority immutability
-* Deterministic registration
+* `authority_scope` cannot be reassigned
+* `capability_type` cannot mutate
+* Governance flags cannot change
+* Lifecycle state cannot be altered at runtime
+
+Layer-2 defines capability — not behavior.
 
 ---
 
-## 📌 Required Fields
+## 3. Registry Surface Freeze
 
-Every agent must include:
+The registry container itself is frozen:
 
-| Field                 | Type          | Mutable | Description                            |
-| --------------------- | ------------- | ------- | -------------------------------------- |
-| `id`                  | number | ❌ No    | Unique identifier                      |
-| `name`                | string        | ❌ No    | Official agent name                    |
-| `description`         | string        | ❌ No    | Capability summary                     |
-| `authority_scope`     | string        | ❌ No    | Explicit boundary of authority         |
-| `capability_type`     | string        | ❌ No    | Classification category                |
-| `lifecycle_state`     | enum          | ❌ No    | `Active`, `Deprecated` or `Suspended` |
-| `load_visibility`     | boolean       | ❌ No    | Whether runtime load may be displayed  |
-| `governance_eligible` | boolean       | ❌ No    | Eligible for governance review         |
-| `why_exists`          | string        | ❌ No    | Required justification of existence    |
+```javascript
+export const AgentRegistry = Object.freeze([
+  createAgentContract({...}),
+  createAgentContract({...}),
+]);
+```
 
-All fields are frozen at creation.
+This prevents:
 
----
+* Adding agents at runtime
+* Removing agents dynamically
+* Reordering the registry source
+* Structural mutation of the Layer-2 boundary
 
-## 🔒 Immutability Rules
-
-All agents are frozen using `Object.freeze()`.
-
-This guarantees:
-
-* Authority cannot escalate at runtime
-* Capability cannot be redefined by UI
-* Lifecycle cannot silently change
-* Governance eligibility cannot be toggled dynamically
-
-If mutation were allowed, the system would lose:
-
-* Determinism
-* Auditability
-* Structural trust
-* Layer separation integrity
-
-Layer-2 must be stable and declarative.
+Layer-2 is a static definition surface.
 
 ---
 
-## 🔁 Lifecycle States
+## 4. Dev-Mode Mutation Proof
 
-Agents must explicitly declare one of:
+A development-only internal mutation test was implemented:
 
-* `Active`
-* `Deprecated`
-* `Suspended`
+```javascript
+if (import.meta.env.DEV !== "production") {
+  try {
+    AgentRegistry[0].authority_scope = "HACKED";
+    console.error("❌ Mutation succeeded — deep freeze failed.");
+  } catch {
+    console.log("✅ authority_scope mutation blocked.");
+  }
 
-Lifecycle is declarative metadata.
-It does not execute behavior.
+  try {
+    AgentRegistry.push({ id: 999 });
+    console.error("❌ Registry array mutation succeeded.");
+  } catch {
+    console.log("✅ Registry array mutation blocked.");
+  }
+}
+```
 
----
+### Observed Result
 
-## 🏛 Registry vs Selection
+Console output confirms:
 
-Layer-2 Registry:
+```
+? authority_scope mutation blocked.
+? Registry array mutation blocked.
+```
 
-* Canonical list of recognized agents
-* Immutable
-* Deterministic
+This demonstrates:
 
-UI Selection State:
+* Nested mutation fails
+* Container mutation fails
+* Enforcement is runtime-verified
 
-* Temporary
-* Mutable
-* Does not modify the registry
-
-Registry defines existence.
-Selection defines usage.
-
-They must never be mixed.
-
----
-
-## 🚫 What Is Not Allowed in Layer-2
-
-The following are prohibited inside the Agent Contract:
-
-* Runtime load values
-* Busy/Available state
-* Refusal reasons
-* Dynamic authority reassignment
-* Self-modifying capability
-* Orchestration logic
-* Policy engines
-
-Those belong to other layers.
-
-Layer-2 defines capability.
-It does not invent behavior.
-
----
-
-## 🧱 Architectural Principle
-
-Layer-1 → Runtime Behavior.
-
-Layer-2 → Capability Definition (this layer).
-
-Layer-3 → Governance Enforcement
-
-Layer-2 must remain:
-
-* Declarative
-* Immutable
-* Deterministic
-* Explicit
-* Structurally disciplined
-
-If a change requires runtime mutation, it does not belong here.
+## Note 
+* The Agent Contract uses recursive deepFreeze to enforce structural immutability 
+* Nested properties (e.g., authority_scope) cannot be modified at runtime
+* The registry array itself is frozen to prevent agent insertion/removal post initialization
+* Dev-mode mutation attempts confirm enforcement

@@ -1,5 +1,3 @@
-// registry/RegistryInterface.js
-
 import { AgentRegistry } from "./AgentRegistry";
 import {
   registryVersion,

@@ -118,8 +118,8 @@ if (import.meta.env.DEV !== "production") {
 Console output confirms:
 
 ```
-? authority_scope mutation blocked.
-? Registry array mutation blocked.
+✅ authority_scope mutation blocked.
+✅ Registry array mutation blocked.
 ```
 
 This demonstrates:

@@ -1,4 +1,4 @@
-import { buildActionProposal } from "./layer2/ActionProposal";
+import { buildActionProposal } from "./ActionProposal.js";
 
 const proposal = buildActionProposal({
   actor: "intent-router",

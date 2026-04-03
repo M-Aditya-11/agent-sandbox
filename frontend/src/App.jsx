@@ -40,7 +40,7 @@ function App() {
 
   return (
     <div className="container">
-      <h1>🧠 Deterministic Agent Registry</h1>
+      <h1>🧠 Deterministic Agent Registry </h1>
 
       <SystemContextBanner
         registryVersion={getRegistryVersion()}

@@ -133,3 +133,34 @@ This demonstrates:
 * Nested properties (e.g., authority_scope) cannot be modified at runtime
 * The registry array itself is frozen to prevent agent insertion/removal post initialization
 * Dev-mode mutation attempts confirm enforcement
+
+---------------------------------------------xxx-------------------------------------------------
+
+
+## ActionProposal Contract
+
+Layer-2 produces a deterministic ActionProposal object consumed by Core.
+
+Schema:
+```
+{
+approved: boolean,
+actor: string,
+action: string,
+agents: string[],
+sequence: string[],
+constraints: {
+  lifecycle_valid: boolean,
+  governance_status: "allow" | "deny" | "escalate"
+},
+context: object,
+reason: string
+}
+```
+Rules
+
+- No field omission
+- No schema drift
+- Same input → same output
+- Deterministic behavior only
+- No implicit logic

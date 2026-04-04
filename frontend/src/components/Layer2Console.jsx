@@ -1,17 +1,20 @@
 import { buildActionProposal } from "../layer2/ActionProposal";
 import { validateStructure } from "../layer2/StructuralValidator";
 import { simulateGovernance } from "../layer2/GovernanceHandshake";
+import { RegistryInterface } from "../registry/RegistryInterface";
 
 export default function Layer2Console() {
 
   const input = {
     actor: "intent-router",
     action: "weather.fetch",
-    agents: ["weather.agent"],
+    agents: [1],
     context: { city: "Mumbai" }
   };
 
-  const validation = validateStructure(input.agents);
+  const validation = validateStructure(
+    input.agents.map(id => RegistryInterface.getAgentById(id)).filter(Boolean)
+  );
 
   const governance = simulateGovernance({
     actor: input.actor,

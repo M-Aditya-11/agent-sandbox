@@ -8,8 +8,15 @@ import { validateActionProposal } from "./validateActionProposal.js";
 vi.mock("../registry/RegistryInterface.js", () => ({
   RegistryInterface: {
     getAgentById: (id) => {
-      const known = ["weather.agent", "planner.agent", "executor.agent", "system.agent", "user.agent"];
-      return known.includes(id) ? { id, name: id } : null;
+      const registry = {
+        1: { id: 1, name: "Text Summarizer",    lifecycle_state: "Active" },
+        2: { id: 2, name: "Data Formatter",      lifecycle_state: "Active" },
+        3: { id: 3, name: "Risk Evaluator",      lifecycle_state: "Active" },
+        4: { id: 4, name: "Document Classifier", lifecycle_state: "Suspended" },
+        5: { id: 5, name: "Language Translator", lifecycle_state: "Active" },
+        6: { id: 6, name: "Workflow Router",     lifecycle_state: "Active" },
+      };
+      return registry[id] ?? null;
     },
   },
 }));
@@ -22,7 +29,7 @@ function base(overrides = {}) {
   return {
     actor: "intent-router",
     action: "weather.fetch",
-    agents: ["weather.agent"],
+    agents: [1],
     context: { city: "Mumbai" },
     ...overrides,
   };
@@ -72,7 +79,7 @@ describe("TC-03 — governance deny: actor=system", () => {
 describe("TC-04 — governance escalate: multiple agents", () => {
   it("returns approved=false, governance_status=escalate", () => {
     const proposal = buildActionProposal(
-      base({ agents: ["weather.agent", "planner.agent"] })
+      base({ agents: [1, 2] })
     );
 
     expect(proposal.approved).toBe(false);
@@ -85,10 +92,12 @@ describe("TC-04 — governance escalate: multiple agents", () => {
 
 describe("TC-05 — invalid structure: suspended agent", () => {
   it("returns lifecycle_valid=false, approved=false", () => {
-    const result = validateStructure(["suspended.agent"]);
+    const result = validateStructure([
+      { id: 4, name: "Document Classifier", lifecycle_state: "Suspended" }
+    ]);
 
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain("Suspended agent detected: suspended.agent");
+    expect(result.errors).toContain("Suspended agent detected: 4");
   });
 });
 
@@ -96,35 +105,42 @@ describe("TC-05 — invalid structure: suspended agent", () => {
 
 describe("TC-06 — invalid structure: duplicate agents", () => {
   it("returns lifecycle_valid=false with duplicate error", () => {
-    const result = validateStructure(["weather.agent", "weather.agent"]);
+    const agent = { id: 1, name: "Text Summarizer", lifecycle_state: "Active" };
+    const result = validateStructure([agent, agent]);
 
     expect(result.valid).toBe(false);
     expect(result.errors).toContain("Duplicate agents detected");
   });
 });
 
-// ─── TC-07  Invalid structure — executor → planner chain ─────────────────────
+// ─── TC-07  Invalid structure — Risk Evaluator → Text Summarizer ─────────────
 
-describe("TC-07 — invalid structure: executor.agent → planner.agent", () => {
+describe("TC-07 — invalid structure: Risk Evaluator → Text Summarizer", () => {
   it("returns lifecycle_valid=false with chaining error", () => {
-    const result = validateStructure(["executor.agent", "planner.agent"]);
+    const result = validateStructure([
+      { id: 3, name: "Risk Evaluator",   lifecycle_state: "Active" },
+      { id: 1, name: "Text Summarizer",  lifecycle_state: "Active" },
+    ]);
 
     expect(result.valid).toBe(false);
     expect(result.errors).toContain(
-      "Invalid chaining: executor.agent cannot precede planner.agent"
+      "Invalid chaining: Risk Evaluator cannot precede Text Summarizer"
     );
   });
 });
 
-// ─── TC-08  Invalid structure — system → user chain ──────────────────────────
+// ─── TC-08  Invalid structure — Workflow Router → Data Formatter ─────────────
 
-describe("TC-08 — invalid structure: system.agent → user.agent", () => {
+describe("TC-08 — invalid structure: Workflow Router → Data Formatter", () => {
   it("returns lifecycle_valid=false with chaining error", () => {
-    const result = validateStructure(["system.agent", "user.agent"]);
+    const result = validateStructure([
+      { id: 6, name: "Workflow Router",  lifecycle_state: "Active" },
+      { id: 2, name: "Data Formatter",   lifecycle_state: "Active" },
+    ]);
 
     expect(result.valid).toBe(false);
     expect(result.errors).toContain(
-      "Invalid chaining: system.agent cannot precede user.agent"
+      "Invalid chaining: Workflow Router cannot precede Data Formatter"
     );
   });
 });
@@ -133,7 +149,7 @@ describe("TC-08 — invalid structure: system.agent → user.agent", () => {
 
 describe("TC-09 — agent not found in registry", () => {
   it("returns approved=false, reason=Agent not found in registry", () => {
-    const proposal = buildActionProposal(base({ agents: ["ghost.agent"] }));
+    const proposal = buildActionProposal(base({ agents: [999] }));
 
     expect(proposal.approved).toBe(false);
     expect(proposal.constraints.lifecycle_valid).toBe(false);

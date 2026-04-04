@@ -9,18 +9,11 @@ export function buildActionProposal({
   context = {}
 }) {
 
-  // registry interface usage
-  const resolved = agents.map((id) => {
-    const agent = RegistryInterface.getAgentById(id);
+  // registry interface usage — resolve all agent IDs
+  const resolved = agents.map((id) => RegistryInterface.getAgentById(id));
 
-    return agent || {
-      id,
-      status: "missing"
-    };
-  });
-
-  // fail closed
-  if (resolved.includes(undefined)) {
+  // fail closed — any unresolved agent blocks the proposal
+  if (resolved.includes(null)) {
     return {
       approved: false,
       actor,
@@ -36,8 +29,8 @@ export function buildActionProposal({
     };
   }
 
-  // structural validation
-  const validation = validateStructure(agents);
+  // structural validation — pass resolved agent objects
+  const validation = validateStructure(resolved);
 
   // governance handshake
   const governance = simulateGovernance({

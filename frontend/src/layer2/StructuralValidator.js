@@ -1,42 +1,31 @@
-export function validateStructure(agents = []) {
+export function validateStructure(resolvedAgents = []) {
   const errors = [];
 
-  // Rule 1: no suspended agents
-  const suspendedAgents = ["suspended.agent"]; // deterministic list
-
-  agents.forEach(agent => {
-    if (suspendedAgents.includes(agent)) {
-      errors.push(`Suspended agent detected: ${agent}`);
+  // Rule 1: no suspended agents (checked via registry lifecycle_state)
+  resolvedAgents.forEach(agent => {
+    if (agent.lifecycle_state === "Suspended") {
+      errors.push(`Suspended agent detected: ${agent.id}`);
     }
   });
 
   // Rule 2: no duplicates
-  const unique = new Set(agents);
-  if (unique.size !== agents.length) {
+  const ids = resolvedAgents.map(a => a.id);
+  const unique = new Set(ids);
+  if (unique.size !== ids.length) {
     errors.push("Duplicate agents detected");
   }
 
-  // Rule 3: invalid chaining rule #1
-  for (let i = 0; i < agents.length - 1; i++) {
-    if (
-      agents[i] === "executor.agent" &&
-      agents[i + 1] === "planner.agent"
-    ) {
-      errors.push(
-        "Invalid chaining: executor.agent cannot precede planner.agent"
-      );
+  // Rule 3: Risk Evaluator (id:3) cannot directly precede Text Summarizer (id:1)
+  for (let i = 0; i < resolvedAgents.length - 1; i++) {
+    if (resolvedAgents[i].id === 3 && resolvedAgents[i + 1].id === 1) {
+      errors.push("Invalid chaining: Risk Evaluator cannot precede Text Summarizer");
     }
   }
 
-  // Rule 4: invalid chaining rule #2
-  for (let i = 0; i < agents.length - 1; i++) {
-    if (
-      agents[i] === "system.agent" &&
-      agents[i + 1] === "user.agent"
-    ) {
-      errors.push(
-        "Invalid chaining: system.agent cannot precede user.agent"
-      );
+  // Rule 4: Workflow Router (id:6) cannot directly precede Data Formatter (id:2)
+  for (let i = 0; i < resolvedAgents.length - 1; i++) {
+    if (resolvedAgents[i].id === 6 && resolvedAgents[i + 1].id === 2) {
+      errors.push("Invalid chaining: Workflow Router cannot precede Data Formatter");
     }
   }
 

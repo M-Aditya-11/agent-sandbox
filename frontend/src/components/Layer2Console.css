@@ -1,0 +1,50 @@
+.layer2-console {
+  margin: 20px 0px;
+  border: 1px solid #1e293b;
+  background: #020617;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.layer2-header {
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #93c5fd;
+  background: #020617;
+  border-bottom: 1px solid #1e293b;
+}
+
+.layer2-section {
+  border-bottom: 1px solid #0f172a;
+}
+
+.layer2-section:last-child {
+  border-bottom: none;
+}
+
+.layer2-section-title {
+  padding: 8px 14px;
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: #64748b;
+  background: #020617;
+}
+
+.layer2-pre {
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #e2e8f0;
+  background: #010409;
+  overflow-x: auto;
+}
+
+.layer2-response {
+  padding: 12px 14px;
+  font-size: 12px;
+  font-family: monospace;
+  color: #38bdf8;
+  background: #010409;
+}

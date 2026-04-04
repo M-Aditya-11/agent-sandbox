@@ -15,6 +15,7 @@ import ChainPreview from "./components/ChainPreview";
 import { useSession } from "./session/useSession";
 import SystemContextBanner from "./components/SystemContextBanner";
 import MutationSimulator from "./components/MutationSimulator";
+import Layer2Console from "./components/Layer2Console";
 import "./App.css";
 
 function App() {
@@ -41,6 +42,9 @@ function App() {
   return (
     <div className="container">
       <h1>🧠 Deterministic Agent Registry </h1>
+
+      <h2>Layer-2 Deterministic Debug Console</h2>
+      <Layer2Console />
 
       <SystemContextBanner
         registryVersion={getRegistryVersion()}

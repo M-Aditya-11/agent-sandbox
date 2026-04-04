@@ -32,6 +32,23 @@ export function buildActionProposal({
   // structural validation — pass resolved agent objects
   const validation = validateStructure(resolved);
 
+  // skip governance if structure is invalid
+  if (!validation.valid) {
+    return {
+      approved: false,
+      actor,
+      action,
+      agents,
+      sequence: [...agents],
+      constraints: {
+        lifecycle_valid: false,
+        governance_status: "deny"
+      },
+      context,
+      reason: "Rejected by Layer-2 decision engine"
+    };
+  }
+
   // governance handshake
   const governance = simulateGovernance({
     actor,
@@ -40,9 +57,7 @@ export function buildActionProposal({
     context
   });
 
-  const approved =
-    validation.valid &&
-    governance.response === "allow";
+  const approved = governance.response === "allow";
 
   return {
     approved,
@@ -51,7 +66,7 @@ export function buildActionProposal({
     agents,
     sequence: [...agents],
     constraints: {
-      lifecycle_valid: validation.valid,
+      lifecycle_valid: true,
       governance_status: governance.response
     },
     context,

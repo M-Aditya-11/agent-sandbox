@@ -52,7 +52,8 @@ export default function Layer2Console() {
 
         .layer2-section-title {
           padding: 8px 14px;
-          font-size: 11px;
+          font-size: 12px;
+          font-weight: 600;
           letter-spacing: .04em;
           color: #64748b;
           background: #020617;

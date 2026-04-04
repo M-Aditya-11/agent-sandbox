@@ -13,7 +13,7 @@ Layer-2 produces a deterministic `ActionProposal` object consumed by Core. Every
 {
   approved: boolean,              // true only if validation + governance both pass
   actor: string,                  // identity initiating the action
-  action: string,                 // action key (e.g. "weather.fetch")
+  action: string,                 // action key (e.g. "task.route")
   agents: string[],               // agent IDs requested
   sequence: string[],             // ordered execution chain (copy of agents)
   constraints: {
@@ -48,12 +48,12 @@ Every field is required. No field may be omitted or mistyped:
 
 ### Structural Validation (`validateStructure`)
 
-Applied to the `agents` array before governance:
+Applied to resolved agent objects (from registry) before governance:
 
-- No suspended agents — `"suspended.agent"` is permanently blocked
+- No suspended agents — any agent with `lifecycle_state: "Suspended"` is blocked
 - No duplicate agent IDs in the chain
-- `executor.agent` cannot directly precede `planner.agent`
-- `system.agent` cannot directly precede `user.agent`
+- `Risk Evaluator (id:3)` cannot directly precede `Text Summarizer (id:1)`
+- `Workflow Router (id:6)` cannot directly precede `Data Formatter (id:2)`
 
 Any violation sets `lifecycle_valid: false` and blocks approval.
 
@@ -65,7 +65,7 @@ Any violation sets `lifecycle_valid: false` and blocks approval.
 
 ```
 Default:               deny       ← fail-closed baseline
-Rule 1 — action:       if action === "weather.fetch"  → allow
+Rule 1 — action:       if action === "task.route"     → allow
 Rule 2 — multi-agent:  if agents.length > 1           → escalate
 Rule 3 — system actor: if actor === "system"          → deny
 ```
@@ -86,7 +86,7 @@ Rule 3 — system actor: if actor === "system"          → deny
 | Invalid chain order | `false` | *(governance skipped)* | `false` | `"Rejected by Layer-2 decision engine"` |
 | `actor === "system"` | `true` | `"deny"` | `false` | `"Rejected by Layer-2 decision engine"` |
 | Multiple agents requested | `true` | `"escalate"` | `false` | `"Rejected by Layer-2 decision engine"` |
-| Unknown action (not `weather.fetch`) | `true` | `"deny"` | `false` | `"Rejected by Layer-2 decision engine"` |
+| Unknown action (not `task.route`) | `true` | `"deny"` | `false` | `"Rejected by Layer-2 decision engine"` |
 | Valid single agent, allowed action | `true` | `"allow"` | `true` | `"Validation passed and governance allowed"` |
 
 ---

@@ -22,14 +22,14 @@ It is mounted directly in `App.jsx` under the `Layer-2 Deterministic Debug Conso
 
 ## Core Execution Flow
 
-### 1. `frontend/src/layer2/StructuralValidator.js` — `validateStructure(agents)`
+### 1. `frontend/src/layer2/StructuralValidator.js` — `validateStructure(resolvedAgents)`
 
-Validates the agent chain before governance is consulted:
+Validates resolved agent objects (from registry) before governance is consulted:
 
-- Blocks `"suspended.agent"` (permanently blocked)
+- Blocks any agent with `lifecycle_state: "Suspended"`
 - Blocks duplicate agent IDs
-- Blocks `executor.agent → planner.agent` ordering
-- Blocks `system.agent → user.agent` ordering
+- Blocks `Risk Evaluator (id:3) → Text Summarizer (id:1)` ordering
+- Blocks `Workflow Router (id:6) → Data Formatter (id:2)` ordering
 
 Returns `{ valid: boolean, errors: string[] }`.
 
@@ -41,7 +41,7 @@ Applies deterministic rules in priority order (last match wins):
 
 ```
 Default:               "deny"      ← fail-closed baseline
-Rule 1 — action:       "weather.fetch"    → "allow"
+Rule 1 — action:       "task.route"       → "allow"
 Rule 2 — multi-agent:  agents.length > 1  → "escalate"
 Rule 3 — system actor: actor === "system" → "deny"
 ```
@@ -65,13 +65,13 @@ Orchestrates the full pipeline:
 
 ## Input → Output Example
 
-**Input:**
+**Input (from `intentRouterMock.js` — Aditya Sawant's intent router output):**
 ```json
 {
   "actor": "intent-router",
-  "action": "weather.fetch",
-  "agents": ["weather.agent"],
-  "context": { "city": "Mumbai" }
+  "action": "task.route",
+  "agents": ["6"],
+  "context": { "task": "summarize-and-format" }
 }
 ```
 
@@ -87,9 +87,9 @@ Orchestrates the full pipeline:
 ```json
 {
   "actor": "intent-router",
-  "action": "weather.fetch",
-  "resource": ["weather.agent"],
-  "context": { "city": "Mumbai" }
+  "action": "task.route",
+  "resource": ["6"],
+  "context": { "task": "summarize-and-format" }
 }
 ```
 
@@ -103,14 +103,14 @@ allow
 {
   "approved": true,
   "actor": "intent-router",
-  "action": "weather.fetch",
-  "agents": ["weather.agent"],
-  "sequence": ["weather.agent"],
+  "action": "task.route",
+  "agents": ["6"],
+  "sequence": ["6"],
   "constraints": {
     "lifecycle_valid": true,
     "governance_status": "allow"
   },
-  "context": { "city": "Mumbai" },
+  "context": { "task": "summarize-and-format" },
   "reason": "Validation passed and governance allowed"
 }
 ```
@@ -124,8 +124,8 @@ allow
 | Agent not found in registry | `false` | `"deny"` | `false` | `"Agent not found in registry"` |
 | Suspended agent in chain | `false` | *(skipped)* | `false` | `"Rejected by Layer-2 decision engine"` |
 | Duplicate agents in chain | `false` | *(skipped)* | `false` | `"Rejected by Layer-2 decision engine"` |
-| `executor.agent → planner.agent` | `false` | *(skipped)* | `false` | `"Rejected by Layer-2 decision engine"` |
-| `system.agent → user.agent` | `false` | *(skipped)* | `false` | `"Rejected by Layer-2 decision engine"` |
+| `Risk Evaluator → Text Summarizer` | `false` | *(skipped)* | `false` | `"Rejected by Layer-2 decision engine"` |
+| `Workflow Router → Data Formatter` | `false` | *(skipped)* | `false` | `"Rejected by Layer-2 decision engine"` |
 | `actor === "system"` | `true` | `"deny"` | `false` | `"Rejected by Layer-2 decision engine"` |
 | Multiple agents requested | `true` | `"escalate"` | `false` | `"Rejected by Layer-2 decision engine"` |
 | Unknown action | `true` | `"deny"` | `false` | `"Rejected by Layer-2 decision engine"` |
@@ -144,9 +144,9 @@ INPUT
 ──────────────────────────────────────────
 {
   "actor": "intent-router",
-  "action": "weather.fetch",
-  "agents": ["weather.agent"],
-  "context": { "city": "Mumbai" }
+  "action": "task.route",
+  "agents": ["6"],
+  "context": { "task": "summarize-and-format" }
 }
 
 VALIDATION STATUS
@@ -160,9 +160,9 @@ GOVERNANCE REQUEST
 ──────────────────────────────────────────
 {
   "actor": "intent-router",
-  "action": "weather.fetch",
-  "resource": ["weather.agent"],
-  "context": { "city": "Mumbai" }
+  "action": "task.route",
+  "resource": ["6"],
+  "context": { "task": "summarize-and-format" }
 }
 
 GOVERNANCE RESPONSE
@@ -174,14 +174,14 @@ FINAL ACTION PROPOSAL
 {
   "approved": true,
   "actor": "intent-router",
-  "action": "weather.fetch",
-  "agents": ["weather.agent"],
-  "sequence": ["weather.agent"],
+  "action": "task.route",
+  "agents": ["6"],
+  "sequence": ["6"],
   "constraints": {
     "lifecycle_valid": true,
     "governance_status": "allow"
   },
-  "context": { "city": "Mumbai" },
+  "context": { "task": "summarize-and-format" },
   "reason": "Validation passed and governance allowed"
 }
 ```

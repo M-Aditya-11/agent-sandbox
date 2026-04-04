@@ -10,7 +10,7 @@
 
 export const intentRouterOutput = Object.freeze({
   actor: "intent-router",
-  action: "weather.fetch",
-  agents: [1],
-  context: { city: "Mumbai" },
+  action: "task.route",
+  agents: ["6"],
+  context: { task: "summarize-and-format" },
 });

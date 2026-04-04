@@ -21,7 +21,8 @@ export function getAllAgents() {
  * Ensures strict equality check.
  */
 export function getAgentById(id) {
-  return AgentRegistry.find((agent) => agent.id === id) || null;
+  const normalized = typeof id === "string" ? Number(id) : id;
+  return AgentRegistry.find((agent) => agent.id === normalized) || null;
 }
 
 /*

@@ -16,7 +16,8 @@ vi.mock("../registry/RegistryInterface.js", () => ({
         5: { id: 5, name: "Language Translator", lifecycle_state: "Active" },
         6: { id: 6, name: "Workflow Router",     lifecycle_state: "Active" },
       };
-      return registry[id] ?? null;
+      const normalized = typeof id === "string" ? Number(id) : id;
+      return registry[normalized] ?? null;
     },
   },
 }));
@@ -28,9 +29,9 @@ beforeEach(() => vi.clearAllMocks());
 function base(overrides = {}) {
   return {
     actor: "intent-router",
-    action: "weather.fetch",
-    agents: [1],
-    context: { city: "Mumbai" },
+    action: "task.route",
+    agents: ["6"],
+    context: { task: "summarize-and-format" },
     ...overrides,
   };
 }
@@ -79,7 +80,7 @@ describe("TC-03 — governance deny: actor=system", () => {
 describe("TC-04 — governance escalate: multiple agents", () => {
   it("returns approved=false, governance_status=escalate", () => {
     const proposal = buildActionProposal(
-      base({ agents: [1, 2] })
+      base({ agents: ["6", "1"] })
     );
 
     expect(proposal.approved).toBe(false);
@@ -149,7 +150,7 @@ describe("TC-08 — invalid structure: Workflow Router → Data Formatter", () =
 
 describe("TC-09 — agent not found in registry", () => {
   it("returns approved=false, reason=Agent not found in registry", () => {
-    const proposal = buildActionProposal(base({ agents: [999] }));
+    const proposal = buildActionProposal(base({ agents: ["999"] }));
 
     expect(proposal.approved).toBe(false);
     expect(proposal.constraints.lifecycle_valid).toBe(false);

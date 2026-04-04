@@ -10,8 +10,8 @@ export function simulateGovernance({ actor, action, resource, context }) {
   // deterministic rules
   let response = "deny"; //  fail-closed default
 
-  // Rule 1 — weather allowed
-  if (action === "weather.fetch") {
+  // Rule 1 — task routing allowed
+  if (action === "task.route") {
     response = "allow";
   }
 

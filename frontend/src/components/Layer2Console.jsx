@@ -2,15 +2,12 @@ import { buildActionProposal } from "../layer2/ActionProposal";
 import { validateStructure } from "../layer2/StructuralValidator";
 import { simulateGovernance } from "../layer2/GovernanceHandshake";
 import { RegistryInterface } from "../registry/RegistryInterface";
+import { intentRouterOutput } from "../layer2/intentRouterMock";
 
 export default function Layer2Console() {
 
-  const input = {
-    actor: "intent-router",
-    action: "weather.fetch",
-    agents: [1],
-    context: { city: "Mumbai" }
-  };
+  // Consuming Aditya Sawant's intent router output (mocked until live integration)
+  const input = intentRouterOutput;
 
   const validation = validateStructure(
     input.agents.map(id => RegistryInterface.getAgentById(id)).filter(Boolean)

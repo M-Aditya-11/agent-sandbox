@@ -1,99 +1,161 @@
+# Sūtradhāra — Control Plane (Layer-2)
 
-# ActionProposal Contract
+## What This Is
 
-## Objective
+Sūtradhāra is the structural control plane for the BHIV Tantra agent pipeline.
 
-Layer-2 produces a deterministic `ActionProposal` object consumed by Core. Every proposal is structurally validated, governance-checked, and schema-complete before leaving Layer-2.
+It receives agent selection output from **Chayan**, validates the agent chain, and produces a governance-ready `ActionProposal`. It makes no governance decisions. It forwards a request.
 
 ---
 
-## 1. ActionProposal Schema
+## System Architecture
 
-```javascript
+```
+Intent
+  └─→ Chayan (chayan-agent-selection)
+          └─→ agent_selection_output
+                  └─→ Sūtradhāra (this repo)
+                          └─→ ActionProposal
+                                  └─→ External Governance Engine (KESHAV / Sarathi)
+```
+
+Two repos. Two responsibilities. One contract between them.
+
+| Repo | Role |
+|---|---|
+| `chayan-agent-selection` | Maps intent to ordered agent IDs — selection only |
+| `agent-sandbox` (this repo) | Validates agent chain, assembles ActionProposal — control only |
+
+---
+
+## ActionProposal Schema
+
+```json
 {
-  approved: boolean,              // true only if validation + governance both pass
-  actor: string,                  // identity initiating the action
-  action: string,                 // action key (e.g. "task.route")
-  agents: string[],               // agent IDs requested
-  sequence: string[],             // ordered execution chain (copy of agents)
-  constraints: {
-    lifecycle_valid: boolean,     // result of StructuralValidator
-    governance_status: "allow" | "deny" | "escalate"  // result of GovernanceHandshake
+  "actor": "string",
+  "action": "string",
+  "agents": ["string"],
+  "sequence": ["string"],
+  "constraints": {
+    "lifecycle_valid": true
   },
-  context: object,                // arbitrary caller-supplied context
-  reason: string                  // human-readable decision explanation
+  "context": {},
+  "governance_request": {
+    "actor": "string",
+    "action": "string",
+    "resource": ["string"],
+    "context": {}
+  }
 }
 ```
 
----
+### Field Reference
 
-## 2. Validation Rules
-
-### Schema Validation (`validateActionProposal`)
-
-Every field is required. No field may be omitted or mistyped:
-
-| Field | Type | Constraint |
+| Field | Type | Description |
 |---|---|---|
-| `approved` | `boolean` | required |
-| `actor` | `string` | required |
-| `action` | `string` | required |
-| `agents` | `string[]` | required array |
-| `sequence` | `string[]` | required array |
-| `constraints` | `object` | required |
-| `constraints.lifecycle_valid` | `boolean` | required |
-| `constraints.governance_status` | `"allow" \| "deny" \| "escalate"` | must be one of three values |
-| `context` | `object` | required |
-| `reason` | `string` | required |
+| `actor` | `string` | Identity initiating the action |
+| `action` | `string` | Action key (e.g. `"task.route"`) |
+| `agents` | `string[]` | Agent IDs from Chayan |
+| `sequence` | `string[]` | Ordered execution chain (independent copy of agents) |
+| `constraints.lifecycle_valid` | `boolean` | Result of structural validation |
+| `context` | `object` | Caller-supplied context, passed through unchanged |
+| `governance_request` | `object \| null` | Forwarded to governance engine — `null` if structure is invalid |
 
-### Structural Validation (`validateStructure`)
+### Prohibited Fields
 
-Applied to resolved agent objects (from registry) before governance:
+`validateActionProposal` will return `false` if any of these are present:
 
-- No suspended agents — any agent with `lifecycle_state: "Suspended"` is blocked
-- No duplicate agent IDs in the chain
-- `Risk Evaluator (id:3)` cannot directly precede `Text Summarizer (id:1)`
-- `Workflow Router (id:6)` cannot directly precede `Data Formatter (id:2)`
-
-Any violation sets `lifecycle_valid: false` and blocks approval.
+- `approved` — no verdict is made here
+- `reason` — no decision explanation belongs in this layer
+- `governance_request.response` — governance has not responded yet
 
 ---
 
-## 3. Governance Simulation Logic
+## Structural Validation
 
-`simulateGovernance` applies deterministic rules in priority order (last match wins):
+`validateStructure` runs three checks in guaranteed order before the governance request is assembled:
 
+### 1. Lifecycle — `AGENT_SUSPENDED`
+Any agent with `lifecycle_state: "Suspended"` blocks the chain.
+
+### 2. Duplicates — `DUPLICATE_AGENTS`
+Repeated agent IDs in the chain are blocked.
+
+### 3. Ordering — `INVALID_CHAIN`
+Forbidden adjacent pairs are blocked:
+
+| Blocked pair | Rule |
+|---|---|
+| `Risk Evaluator (id:3)` → `Text Summarizer (id:1)` | Cannot directly precede |
+| `Workflow Router (id:6)` → `Data Formatter (id:2)` | Cannot directly precede |
+
+Each error is `{ code, message }`. Order is deterministic: lifecycle → duplicates → chaining.
+
+Adding a new forbidden pair is one line in `FORBIDDEN_CHAINS` in `StructuralValidator.js`.
+
+---
+
+## Failure Scenarios
+
+| Scenario | `lifecycle_valid` | `governance_request` |
+|---|---|---|
+| Agent not found in registry | `false` | `null` |
+| Suspended agent in chain | `false` | `null` |
+| Duplicate agent IDs | `false` | `null` |
+| Risk Evaluator → Text Summarizer | `false` | `null` |
+| Workflow Router → Data Formatter | `false` | `null` |
+| Unknown task (empty agents from Chayan) | `true` | populated (empty resource) |
+| Valid chain | `true` | populated |
+
+Governance is never contacted when `lifecycle_valid` is `false`.
+
+---
+
+## Core Files
+
+| File | Purpose |
+|---|---|
+| `frontend/src/layer2/ActionProposal.js` | Entry point — resolves agents, runs validation, assembles proposal |
+| `frontend/src/layer2/StructuralValidator.js` | Lifecycle, duplicate, and ordering checks with error codes |
+| `frontend/src/layer2/validateActionProposal.js` | Runtime schema enforcement — rejects decision fields |
+| `frontend/src/layer2/GovernanceHandshake.js` | Pure passthrough — builds governance request, no rules |
+| `frontend/src/layer2/governanceInterface.js` | External governance stub — integration target for live engine |
+
+---
+
+## Running Tests
+
+```bash
+cd frontend
+npm test
 ```
-Default:               deny       ← fail-closed baseline
-Rule 1 — action:       if action === "task.route"     → allow
-Rule 2 — multi-agent:  if agents.length > 1           → escalate
-Rule 3 — system actor: if actor === "system"          → deny
-```
 
-`approved` is `true` only when **both** conditions hold:
-- `lifecycle_valid === true`
-- `governance_status === "allow"`
+10 tests. All pass.
 
 ---
 
-## 4. Failure Scenarios
+## Contract Guarantees
 
-| Scenario | `lifecycle_valid` | `governance_status` | `approved` | `reason` |
-|---|---|---|---|---|
-| Agent not found in registry | `false` | `"deny"` | `false` | `"Agent not found in registry"` |
-| Suspended agent in chain | `false` | *(governance skipped)* | `false` | `"Rejected by Layer-2 decision engine"` |
-| Duplicate agents in chain | `false` | *(governance skipped)* | `false` | `"Rejected by Layer-2 decision engine"` |
-| Invalid chain order | `false` | *(governance skipped)* | `false` | `"Rejected by Layer-2 decision engine"` |
-| `actor === "system"` | `true` | `"deny"` | `false` | `"Rejected by Layer-2 decision engine"` |
-| Multiple agents requested | `true` | `"escalate"` | `false` | `"Rejected by Layer-2 decision engine"` |
-| Unknown action (not `task.route`) | `true` | `"deny"` | `false` | `"Rejected by Layer-2 decision engine"` |
-| Valid single agent, allowed action | `true` | `"allow"` | `true` | `"Validation passed and governance allowed"` |
+- No field omission — all 7 top-level fields are always present
+- No decision fields — `validateActionProposal` enforces this at runtime
+- Same input → same output — no randomness, no side effects
+- Governance is never simulated — `governance_request` is forwarded, not evaluated
+- Fail-closed structurally — invalid chain blocks the proposal before governance is contacted
 
 ---
 
-## Note
+## Integration Points
 
-- No field omission — all 8 top-level fields are always present
-- No schema drift — `validateActionProposal` enforces the contract at runtime
-- Same input → same output — all rules are deterministic, no randomness or side effects
-- Fail-closed — default governance response is `"deny"`; approval requires explicit pass
+| Surface | File | Status |
+|---|---|---|
+| Live intent router | `src/layer2/intentRouterMock.js` | Stub — replace with Aditya Sawant's output |
+| Live governance engine | `src/layer2/governanceInterface.js` | Stub — replace when KESHAV / Sarathi is ready |
+
+---
+
+## Related Docs
+
+- `CONTRACT_BOUNDARY.md` — what each system owns and must not do
+- `SUTRADHARA_VS_CHAYAN.md` — side-by-side comparison of both systems
+- `REVIEW_PACKET.md` — full build record, schema, failure cases, test summary
+- `review-packets/phase2.md` — phase-by-phase decision log for Phases 1–8

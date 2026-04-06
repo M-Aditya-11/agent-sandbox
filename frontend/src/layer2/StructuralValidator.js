@@ -1,36 +1,32 @@
+const FORBIDDEN_CHAINS = [
+  [3, 1], // Risk Evaluator cannot directly precede Text Summarizer
+  [6, 2], // Workflow Router cannot directly precede Data Formatter
+];
+
 export function validateStructure(resolvedAgents = []) {
   const errors = [];
 
-  // Rule 1: no suspended agents (checked via registry lifecycle_state)
-  resolvedAgents.forEach(agent => {
+  for (const agent of resolvedAgents) {
     if (agent.lifecycle_state === "Suspended") {
       errors.push(`Suspended agent detected: ${agent.id}`);
     }
-  });
+  }
 
-  // Rule 2: no duplicates
-  const ids = resolvedAgents.map(a => a.id);
-  const unique = new Set(ids);
-  if (unique.size !== ids.length) {
+  const ids = resolvedAgents.map((a) => a.id);
+  if (new Set(ids).size !== ids.length) {
     errors.push("Duplicate agents detected");
   }
 
-  // Rule 3: Risk Evaluator (id:3) cannot directly precede Text Summarizer (id:1)
   for (let i = 0; i < resolvedAgents.length - 1; i++) {
-    if (resolvedAgents[i].id === 3 && resolvedAgents[i + 1].id === 1) {
-      errors.push("Invalid chaining: Risk Evaluator cannot precede Text Summarizer");
+    const pair = [resolvedAgents[i].id, resolvedAgents[i + 1].id];
+    for (const [from, to] of FORBIDDEN_CHAINS) {
+      if (pair[0] === from && pair[1] === to) {
+        errors.push(
+          `Invalid chaining: ${resolvedAgents[i].name} cannot precede ${resolvedAgents[i + 1].name}`
+        );
+      }
     }
   }
 
-  // Rule 4: Workflow Router (id:6) cannot directly precede Data Formatter (id:2)
-  for (let i = 0; i < resolvedAgents.length - 1; i++) {
-    if (resolvedAgents[i].id === 6 && resolvedAgents[i + 1].id === 2) {
-      errors.push("Invalid chaining: Workflow Router cannot precede Data Formatter");
-    }
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors
-  };
+  return { valid: errors.length === 0, errors };
 }

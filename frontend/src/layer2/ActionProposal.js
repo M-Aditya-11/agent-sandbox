@@ -13,7 +13,7 @@ export function buildActionProposal({ actor, action, agents, context = {} }) {
       sequence: [...agents],
       constraints: { lifecycle_valid: false },
       context,
-      reason: "Agent not found in registry",
+      governance_request: null,
     };
   }
 
@@ -27,11 +27,11 @@ export function buildActionProposal({ actor, action, agents, context = {} }) {
       sequence: [...agents],
       constraints: { lifecycle_valid: false },
       context,
-      reason: "Rejected by Layer-2 structural validator",
+      governance_request: null,
     };
   }
 
-  const governanceRequest = buildGovernanceRequest({ actor, action, resource: agents, context });
+  const governance_request = buildGovernanceRequest({ actor, action, resource: agents, context });
 
   return {
     actor,
@@ -39,8 +39,7 @@ export function buildActionProposal({ actor, action, agents, context = {} }) {
     agents,
     sequence: [...agents],
     constraints: { lifecycle_valid: true },
-    governanceRequest,
     context,
-    reason: "Structural validation passed — awaiting governance",
+    governance_request,
   };
 }

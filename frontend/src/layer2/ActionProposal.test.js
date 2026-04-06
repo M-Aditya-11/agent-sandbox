@@ -36,16 +36,18 @@ function base(overrides = {}) {
 // ─── TC-01  Valid case ───────────────────────────────────────────────────────
 
 describe("TC-01 — valid single agent, passes structure", () => {
-  it("returns lifecycle_valid=true with governanceRequest and passes schema", () => {
+  it("returns lifecycle_valid=true with governance_request and passes schema", () => {
     const proposal = buildActionProposal(base());
 
     expect(proposal.constraints.lifecycle_valid).toBe(true);
-    expect(proposal.governanceRequest).toMatchObject({
+    expect(proposal.governance_request).toMatchObject({
       actor: "intent-router",
       action: "task.route",
       resource: ["6"],
     });
+    expect(proposal.governance_request).not.toHaveProperty("response");
     expect(proposal).not.toHaveProperty("approved");
+    expect(proposal).not.toHaveProperty("reason");
     expect(validateActionProposal(proposal)).toBe(true);
   });
 });
@@ -53,12 +55,14 @@ describe("TC-01 — valid single agent, passes structure", () => {
 // ─── TC-02  Valid multi-agent — structure passes, request forwarded ───────────
 
 describe("TC-02 — valid multi-agent, structure passes", () => {
-  it("returns lifecycle_valid=true with governanceRequest containing all agents", () => {
+  it("returns lifecycle_valid=true with governance_request containing all agents", () => {
     const proposal = buildActionProposal(base({ agents: ["6", "1"] }));
 
     expect(proposal.constraints.lifecycle_valid).toBe(true);
-    expect(proposal.governanceRequest.resource).toEqual(["6", "1"]);
+    expect(proposal.governance_request.resource).toEqual(["6", "1"]);
     expect(proposal).not.toHaveProperty("approved");
+    expect(proposal).not.toHaveProperty("reason");
+    expect(validateActionProposal(proposal)).toBe(true);
   });
 });
 
@@ -69,20 +73,24 @@ describe("TC-03 — actor=system, structure passes", () => {
     const proposal = buildActionProposal(base({ actor: "system" }));
 
     expect(proposal.constraints.lifecycle_valid).toBe(true);
-    expect(proposal.governanceRequest.actor).toBe("system");
+    expect(proposal.governance_request.actor).toBe("system");
     expect(proposal).not.toHaveProperty("approved");
+    expect(proposal).not.toHaveProperty("reason");
+    expect(validateActionProposal(proposal)).toBe(true);
   });
 });
 
 // ─── TC-04  Invalid structure — suspended agent ──────────────────────────────
 
 describe("TC-04 — invalid structure: suspended agent", () => {
-  it("returns lifecycle_valid=false, no governanceRequest", () => {
+  it("returns lifecycle_valid=false, governance_request=null", () => {
     const proposal = buildActionProposal(base({ agents: ["4"] }));
 
     expect(proposal.constraints.lifecycle_valid).toBe(false);
-    expect(proposal).not.toHaveProperty("governanceRequest");
+    expect(proposal.governance_request).toBeNull();
     expect(proposal).not.toHaveProperty("approved");
+    expect(proposal).not.toHaveProperty("reason");
+    expect(validateActionProposal(proposal)).toBe(true);
   });
 });
 
@@ -146,12 +154,14 @@ describe("TC-08 — invalid structure: Workflow Router → Data Formatter", () =
 // ─── TC-09  Agent not found in registry ──────────────────────────────────────
 
 describe("TC-09 — agent not found in registry", () => {
-  it("returns lifecycle_valid=false, reason=Agent not found in registry", () => {
+  it("returns lifecycle_valid=false, governance_request=null", () => {
     const proposal = buildActionProposal(base({ agents: ["999"] }));
 
     expect(proposal.constraints.lifecycle_valid).toBe(false);
-    expect(proposal.reason).toBe("Agent not found in registry");
+    expect(proposal.governance_request).toBeNull();
     expect(proposal).not.toHaveProperty("approved");
+    expect(proposal).not.toHaveProperty("reason");
+    expect(validateActionProposal(proposal)).toBe(true);
   });
 });
 

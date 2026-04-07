@@ -12,7 +12,6 @@ export const ERROR_CODES = {
 export function validateStructure(resolvedAgents = []) {
   const errors = [];
 
-  // 1. Lifecycle — in chain order
   for (const agent of resolvedAgents) {
     if (agent.lifecycle_state === "Suspended") {
       errors.push({
@@ -22,7 +21,6 @@ export function validateStructure(resolvedAgents = []) {
     }
   }
 
-  // 2. Duplicates
   const ids = resolvedAgents.map((a) => a.id);
   if (new Set(ids).size !== ids.length) {
     errors.push({
@@ -31,7 +29,6 @@ export function validateStructure(resolvedAgents = []) {
     });
   }
 
-  // 3. Ordering constraints — in chain order
   for (let i = 0; i < resolvedAgents.length - 1; i++) {
     for (const [from, to] of FORBIDDEN_CHAINS) {
       if (resolvedAgents[i].id === from && resolvedAgents[i + 1].id === to) {

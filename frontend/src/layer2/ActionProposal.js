@@ -4,8 +4,9 @@ import { RegistryInterface } from "../registry/RegistryInterface.js";
 
 export function buildActionProposal({ actor, action, agents, context = {} }) {
   const resolved = agents.map((id) => RegistryInterface.getAgentById(id));
+  const structurallyValid = !resolved.includes(null) && validateStructure(resolved).valid;
 
-  if (resolved.includes(null)) {
+  if (!structurallyValid) {
     return {
       actor,
       action,
@@ -16,22 +17,6 @@ export function buildActionProposal({ actor, action, agents, context = {} }) {
       governance_request: null,
     };
   }
-
-  const validation = validateStructure(resolved);
-
-  if (!validation.valid) {
-    return {
-      actor,
-      action,
-      agents,
-      sequence: [...agents],
-      constraints: { lifecycle_valid: false },
-      context,
-      governance_request: null,
-    };
-  }
-
-  const governance_request = buildGovernanceRequest({ actor, action, resource: agents, context });
 
   return {
     actor,
@@ -40,6 +25,6 @@ export function buildActionProposal({ actor, action, agents, context = {} }) {
     sequence: [...agents],
     constraints: { lifecycle_valid: true },
     context,
-    governance_request,
+    governance_request: buildGovernanceRequest({ actor, action, resource: agents, context }),
   };
 }
